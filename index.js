@@ -4,26 +4,57 @@ require("dotenv").config();
 
 functions.http("saveCalcData", async (req, res) => {
 	try {
-		console.info("inserting calculation data into db");
+		const funcName = "saveCalcData";
+		const projectId = process.env.PROJECT_ID;
+		const collectionId = process.env.COLLECTION_ID;
+
 		// connect to Firestore
 		const firestore = new Firestore({
-			projectId: process.env.PROJECT_ID,
+			projectId,
 		});
-		const dbCollection = firestore.collection("InputConfigs");
+		const dbCollection = firestore.collection(collectionId);
 
+		const {
+			config_name,
+			initial_fund,
+			savings_per_month,
+			saving_growth_percentage,
+			retirement_age,
+			monthly_expense,
+			inflation_percentage,
+			investment_return,
+			retirement_return,
+		} = req.body;
+
+		const timestampInSeconds = new Date().getTime() / 1000;
+		console.info(`[${funcName}] inserting ${config_name} data into db`);
+		console.time(`[${funcName}] insertion time`);
 		await dbCollection
 			.add({
-				customer_name: "Cloud Functions 2",
+				config_name,
+				initial_fund,
+				savings_per_month,
+				saving_growth_percentage,
+				retirement_age,
+				monthly_expense,
+				inflation_percentage,
+				investment_return,
+				retirement_return,
+				created_at: timestampInSeconds,
+				updated_at: timestampInSeconds,
 			})
 			.then((docRef) => {
-				console.log(`Document written with ID: ${docRef.id}`);
+				console.debug(
+					`[${funcName}] Document "${config_name}" written with ID: ${docRef.id}`
+				);
+				res.status(200).send({ message: "success", id: docRef.id });
 			})
 			.catch((error) => {
-				console.error("Error adding document: ", error);
+				console.error(`[${funcName}] Error adding document: `, error);
+				res.status(500).send({ error, message: "Error adding document" });
 			});
-
-		res.send("Data saved in Firestore!");
+		console.timeEnd(`[${funcName}] insertion time`);
 	} catch (error) {
-		res.status(500).send("Error saving data: " + error);
+		res.status(500).send({ error, message: "Error adding document" });
 	}
 });
