@@ -76,7 +76,7 @@ async function authenticateReq(headers) {
 			throw new Error("Missing API key in headers");
 		}
 
-		const filePath = "./config/secrets.json";
+		const filePath = process.env.SECRET_PATH;
 		const apiKey = headers["x-api-key"];
 		const jsonFile = await fs.readFile(filePath, { encoding: "utf8" });
 		const { secret_key } = JSON.parse(jsonFile);
