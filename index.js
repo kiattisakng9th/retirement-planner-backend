@@ -7,10 +7,19 @@ require("dotenv").config();
 functions.http("saveCalcData", async (req, res) => {
 	const funcName = "saveCalcData";
 	try {
-		await authenticateReq(req.headers);
 		const projectId = process.env.PROJECT_ID;
 		const collectionId = process.env.COLLECTION_ID;
+		res.set("Access-Control-Allow-Origin", "*");
+		res.set("Access-Control-Allow-Methods", "POST");
+		res.set("Access-Control-Allow-Headers", ["x-api-key", "content-type"]);
 
+		if (req.method === "OPTIONS") {
+			// stop preflight requests here
+			res.status(204).send("");
+			return;
+		}
+
+		await authenticateReq(req.headers);
 		// connect to Firestore
 		const firestore = new Firestore({
 			projectId,
@@ -19,6 +28,8 @@ functions.http("saveCalcData", async (req, res) => {
 
 		const {
 			config_name,
+			age,
+			end_age,
 			initial_fund,
 			savings_per_month,
 			saving_growth_percentage,
@@ -35,6 +46,8 @@ functions.http("saveCalcData", async (req, res) => {
 		await dbCollection
 			.add({
 				config_name,
+				age,
+				end_age,
 				initial_fund,
 				savings_per_month,
 				saving_growth_percentage,
@@ -81,6 +94,8 @@ async function authenticateReq(headers) {
 		const jsonFile = await fs.readFile(filePath, { encoding: "utf8" });
 		const { secret_key } = JSON.parse(jsonFile);
 		const match = await bcrypt.compare(secret_key, apiKey);
+
+		console.log(`[${tagName}] secret_key-apiKey match: `, match);
 
 		if (!match) {
 			throw new Error("Unauthorized access");
