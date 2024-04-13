@@ -11,7 +11,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "functions-framework --target=saveCalcData"
+    "start": "functions-framework --target=saveCalcData --port=8082"
   },
   "author": "",
   "license": "ISC"
